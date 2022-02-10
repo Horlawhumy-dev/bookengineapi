@@ -1,4 +1,8 @@
+from re import T
 from django.db import models
+from datetime import datetime
+from django.utils import timezone
+from dateutil.relativedelta import relativedelta
 
 
 class Listing(models.Model):
@@ -74,3 +78,26 @@ class BookingInfo(models.Model):
             obj = self.hotel_room_type
             
         return f'{obj} {self.price}'
+
+
+class BlockedDay(models.Model):
+    booking_info = models.ForeignKey(BookingInfo, on_delete=models.CASCADE)
+    max_price = models.IntegerField(null=True, blank=True)
+    check_in = models.DateField(default=timezone.now)
+    check_out = models.DateField(null=True, blank=True)
+
+
+    def save(self, *args, **kwargs):
+        n = 3 # 3months interval
+        given_date = self.check_in #default would be => datetime.now
+        date_format = '%Y/%m/%d'
+        dtObj = datetime.strptime(given_date.strftime(date_format), date_format)
+        future_date = (dtObj + relativedelta(months=n)).date() #format would be => '2022-02-10'
+        self.check_out = future_date
+
+        if self.booking_info[1] == 'Apartment':
+            self.max_price = 0
+        else:
+            self.max_price = 100
+
+        return super(BlockedDay, self).save(*args, **kwargs)
