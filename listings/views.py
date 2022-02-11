@@ -36,7 +36,6 @@ class ListingView(APIView):
         for book in booking:
             if book.listing:
                 info = book.listing
-             
             else:
                 info = book.hotel_room_type
                 # listing = HotelRoomType.objects.get(id=info.id)
@@ -49,3 +48,4 @@ class ListingView(APIView):
         return Response({
             "items": json.loads(data)
         }, status.HTTP_200_OK)
+        
